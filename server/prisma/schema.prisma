@@ -1,0 +1,86 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String  @id @default(uuid()) @map("id")
+  email    String  @unique @map("email")
+  password String? @map("password")
+  name     String? @map("name")
+
+  google_id String? @unique @map("google_id")
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+  piggy_banks  PiggyBank[]
+
+   @@map("users")
+}
+
+model Category {
+  id   String @id @default(uuid()) @map("id")
+  name String @unique @map("name")
+  description String @unique @map("description")
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+
+  @@map("categories")
+}
+
+model Transaction {
+  id          String           @id @default(uuid()) @map("id")
+  amount      Float            @map("amount")
+  title       String           @map("title")
+  description String?          @map("description")
+  date        DateTime         @map("date")
+  type        TransactionType @map("type")
+
+  user_id     String @map("user_id")
+  category_id String @map("category_id")
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [user_id], references: [id])
+  category Category @relation(fields: [category_id], references: [id])
+
+  @@map("transactions")
+}
+
+model PiggyBank {
+  id             String          @id @default(uuid()) @map("id")
+  title          String          @map("name")
+  target_amount  Float           @map("target_amount")
+  current_amount Float           @map("current_amount")
+  due_date       DateTime?       @map("due_date")
+  type           PiggyBankType @map("type")
+
+  user_id String @map("user_id")
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("piggy_banks")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PiggyBankType {
+  BUDGET
+  SAVINGS_GOAL
+}

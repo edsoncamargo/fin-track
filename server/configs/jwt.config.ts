@@ -1,6 +1,8 @@
+import { env } from '../src/env';
+
 export function getJWTConfig() {
   return {
-    secret: process.env.JWT_SECRET as string,
-    expiresIn: '25m',
+    secret: env.JWT_SECRET,
+    expiresIn: env.COOKIE_MAX_AGE,
   };
 }

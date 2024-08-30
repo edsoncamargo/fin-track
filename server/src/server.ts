@@ -1,17 +1,39 @@
 import 'dayjs/locale/pt-br';
 
-import fastify from 'fastify';
-import fastifyCookie from 'fastify-cookie';
+import logger, { Logger } from './services/logger.service';
+import { setFastifyCookie, setFastifyCors } from './lib/fastify';
+
+import Fastify from 'fastify';
+import { env } from './env';
 import { setRoutes } from './routes/index.routes';
+import { setSwagger } from './lib/swagger';
 import { setValidatorCompiler } from './lib/zod';
 
-const app = fastify({ logger: false });
+const app = Fastify();
 
-app.register(fastifyCookie, {
-  secret: process.env.COOKIE_SECRET as string,
-});
+const start = async () => {
+  try {
+    setFastifyCors(app);
+    setFastifyCookie(app);
+    setSwagger(app);
+    setValidatorCompiler(app);
+    setRoutes(app);
 
-setValidatorCompiler(app);
-setRoutes(app);
+    await app.ready();
+    await app.listen({ host: '0.0.0.0', port: env.PORT || 10000 });
 
-app.listen({ port: 3333 }).then(() => console.log('Server running...'));
+    logger(
+      `\n>> [INFO] Server está rodando em: ${env.BACKEND_URL} ✅`,
+      Logger.Info
+    );
+    logger(
+      `>> [INFO] Documentação está rodando em: ${env.BACKEND_URL}/documentation 📒\n`,
+      Logger.Info
+    );
+  } catch (err) {
+    logger(`\n>> [ERROR]: ${err}`, Logger.Error);
+    process.exit(1);
+  }
+};
+
+start();
